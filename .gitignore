@@ -1,0 +1,19 @@
+# -----------------------------------------------------------------------------
+# NCERT Doubt Solver - Git Ignore
+# -----------------------------------------------------------------------------
+
+# Secrets & Environment
+.env
+.venv/
+__pycache__/
+*.pyc
+.DS_Store
+
+# Data & Artifacts (DO NOT COMMIT)
+data/vector_store/
+data/raw_books/
+data/cleaned_text/
+
+# IDE Settings
+.vscode/
+.idea/

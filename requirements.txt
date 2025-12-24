@@ -1,0 +1,19 @@
+pdfplumber
+pytesseract
+pillow
+pdf2image
+opencv-python
+langdetect
+tqdm
+
+# Day-2: Embeddings and Vector Database
+sentence-transformers
+faiss-cpu
+numpy
+
+# Day-3: RAG with LLM
+google-generativeai
+
+# Day-4: UI
+streamlit
+watchdog
