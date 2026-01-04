@@ -1,26 +1,25 @@
+--extra-index-url https://download.pytorch.org/whl/cpu
+
 # Core API
 fastapi==0.109.0
 uvicorn==0.27.0
 pydantic==2.6.0
 python-dotenv==1.0.1
-google-generativeai==0.3.2
 
-# Vector store (CPU)
-faiss-cpu==1.7.4
-
-# Embeddings (CPU-safe)
-sentence-transformers==2.2.2
-huggingface-hub==0.14.1
-
-# Force CPU-only PyTorch (CRITICAL)
+# AI/ML Core (CPU Strict)
 torch==2.0.1+cpu
 torchvision==0.15.2+cpu
---extra-index-url https://download.pytorch.org/whl/cpu
 
-# Utilities
+# RAG & Embeddings
+sentence-transformers==2.2.2
+huggingface-hub==0.14.1
+faiss-cpu==1.7.4
+google-generativeai==0.3.2
+
+# Utilities (Pinned)
 numpy==1.26.3
 scikit-learn==1.3.2
 scipy==1.11.4
 nltk==3.9.2
-tqdm
-requests
+requests==2.31.0
+tqdm==4.66.1
