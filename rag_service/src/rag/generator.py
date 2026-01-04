@@ -27,9 +27,9 @@ class LLMGenerator:
         self.user_prompt_template = self._load_user_prompt_template()
         
         # Initialize model
+        # Note: system_instruction not supported in google-generativeai==0.3.2
         self.model = genai.GenerativeModel(
-            model_name=self.config.model_name,
-            system_instruction=self.system_prompt
+            model_name=self.config.model_name
         )
         
     def _setup_api(self):
@@ -106,12 +106,13 @@ class LLMGenerator:
         # 1. Format context
         context_str = self.format_context(chunks)
         
-        # 2. Construct prompt (Note: System prompt is passed at init)
-        # We fill the user template part
-        prompt = self.user_prompt_template.format(
+        # 2. Construct prompt
+        # We manually prepend system prompt since older SDK doesn't support system_instruction
+        user_part = self.user_prompt_template.format(
             RETRIEVED_CHUNKS=context_str,
             USER_QUESTION=question
         )
+        prompt = f"{self.system_prompt}\n\n{user_part}"
         
         # 3. Call LLM
         try:
