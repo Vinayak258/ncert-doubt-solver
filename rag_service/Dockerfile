@@ -14,8 +14,9 @@ RUN pip install --no-cache-dir --upgrade pip && \
 COPY src/ ./src
 COPY app.py .
 
+# Copy vector store data (CRITICAL - contains FAISS index)
+COPY data/vector_store/ ./data/vector_store/
+
 EXPOSE 8001
 
 CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8001"]
-
-COPY src/prompts ./prompts
