@@ -14,6 +14,9 @@ RUN pip install --no-cache-dir --upgrade pip && \
 COPY src/ ./src
 COPY app.py .
 
+# ✅ COPY PROMPT FILES (THIS FIXES THE ERROR)
+COPY prompts/ ./prompts/
+
 # Copy vector store data (CRITICAL - contains FAISS index)
 COPY data/vector_store/ ./data/vector_store/
 
