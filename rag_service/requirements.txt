@@ -9,6 +9,7 @@ faiss-cpu==1.7.4
 
 # Embeddings (CPU-safe)
 sentence-transformers==2.2.2
+huggingface-hub==0.14.1
 
 # Force CPU-only PyTorch (CRITICAL)
 torch==2.0.1+cpu
