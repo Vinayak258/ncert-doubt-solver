@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: ncert-rag-service
+    env: docker
+    region: singapore # Optional, remove if auto-detect wanted, but good for latency if user is in India
+    plan: free
+    rootDir: rag_service
+    dockerContext: rag_service
+    dockerfilePath: Dockerfile
