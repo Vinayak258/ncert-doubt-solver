@@ -1,0 +1,49 @@
+version: '3.8'
+
+services:
+  # 1. RAG AI Service (Core Logic)
+  rag_service:
+    build:
+      context: ./rag_service
+      dockerfile: Dockerfile
+    container_name: ncert_rag_service
+    ports:
+      - "8001:8001"
+    volumes:
+      - ./data:/app/data  # Mount data for vector store
+    environment:
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY}
+    restart: unless-stopped
+
+  # 2. Backend API Gateway
+  api:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    container_name: ncert_api_gateway
+    ports:
+      - "8000:8000"
+    environment:
+      - RAG_SERVICE_URL=http://rag_service:8001
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY}
+    depends_on:
+      - rag_service
+    restart: unless-stopped
+
+  # 3. Frontend Web App
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: ncert_frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:8000/api
+    depends_on:
+      - api
+    restart: unless-stopped
+
+networks:
+  default:
+    driver: bridge

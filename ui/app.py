@@ -1,6 +1,9 @@
 """
 NCERT Doubt-Solver - Student UI
 Final Polished Version (Day-5)
+
+DEPRECATED: This Streamlit app is now legacy.
+Please use the Next.js Frontend for the production experience.
 """
 
 import sys
@@ -16,7 +19,7 @@ from ui.utils import handle_errors, display_chat_message
 
 # Page Config
 st.set_page_config(
-    page_title="NCERT Doubt Solver",
+    page_title="NCERT Doubt Solver (Legacy)",
     page_icon="📚",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -34,8 +37,11 @@ def get_pipeline():
     return RAGPipeline()
 
 def main():
+    # --- DEPRECATION NOTICE ---
+    st.error("⚠️ **LEGACY INTERFACE**: This Streamlit app is deprecated. Please use the Next.js web application for the full product experience.")
+    
     # --- Header & Trust Signals ---
-    st.title("📚 NCERT Doubt Solver")
+    st.title("📚 NCERT Doubt Solver (Legacy Mode)")
     st.markdown("### *Answers strictly from NCERT textbooks*")
     st.markdown("---")
 

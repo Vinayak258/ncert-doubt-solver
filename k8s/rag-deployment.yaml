@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rag-service
+  labels:
+    app: rag-service
+spec:
+  replicas: 1 # RAG models are memory intensive
+  selector:
+    matchLabels:
+      app: rag-service
+  template:
+    metadata:
+      labels:
+        app: rag-service
+    spec:
+      containers:
+      - name: rag-service
+        image: ncert-rag:latest
+        ports:
+        - containerPort: 8001
+        env:
+        - name: GOOGLE_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: ncert-secrets
+              key: google-api-key
+        volumeMounts:
+        - name: vector-store-volume
+          mountPath: /app/data
+        resources:
+          requests:
+            memory: "2Gi"
+            cpu: "1000m"
+          limits:
+            memory: "4Gi"
+            cpu: "2000m"
+      volumes:
+      - name: vector-store-volume
+        persistentVolumeClaim:
+          claimName: vector-store-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: rag-service
+spec:
+  selector:
+    app: rag-service
+  ports:
+    - protocol: TCP
+      port: 8001
+      targetPort: 8001

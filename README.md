@@ -1,127 +1,121 @@
-# 📚 NCERT Doubt Solver (AI)
+# NCERT Doubt Solver (AI-Powered RAG System)
 
-> **Team:** iDeatorsX  
-> **Status:** Final Submission Ready  
+![Python](https://img.shields.io/badge/Python-3.10-blue?style=for-the-badge&logo=python&logoColor=white)
+![FastAPI](https://img.shields.io/badge/FastAPI-0.109-009688?style=for-the-badge&logo=fastapi&logoColor=white)
+![Next.js](https://img.shields.io/badge/Next.js-14-black?style=for-the-badge&logo=next.js&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-24.0-2496ED?style=for-the-badge&logo=docker&logoColor=white)
 
----
+An enterprise-grade, microservices-based AI system designed to answer student doubts using **Retrieval-Augmented Generation (RAG)** strictly from NCERT textbooks.
 
 ## 🚀 Project Overview
 
-The **NCERT Doubt Solver** is an AI-powered educational assistant designed to help Indian students (Classes 6, 8, 10) by answering queries **strictly** from official NCERT textbooks. 
+The **NCERT Doubt Solver** deals with the hallucinations common in Large Language Models (LLMs) by grounding answers in authoritative operational data—in this case, NCERT textbooks.
 
-Unlike general AI tools (like ChatGPT), this system:
-*   **Uses RAG (Retrieval-Augmented Generation)**: It reads the textbook first, then answers.
-*   **Prevents Hallucinations**: If the answer isn't in the book, it says "Out of Syllabus".
-*   **Is Multilingual**: Supports both **English** and **Hindi**.
-*   **Provides Citations**: Every answer proves its source (Chapter & Page number).
-
----
-
-## 🏗️ Architecture Overview
-
-The system processes data in a clear pipeline:
-
-1.  **PDF Ingestion**: Official NCERT PDFs are read and cleaned.
-2.  **Chunking**: Text is split into meaningful small parts (chunks).
-3.  **Embeddings**: Chunks are converted into vector numbers (using `all-MiniLM-L12-v2`).
-4.  **FAISS Retrieval**: User questions search this vector database for the best matches.
-5.  **LLM Generation**: The retrieved text + user question is sent to **Google Gemini**.
-6.  **UI**: The final answer is shown on a Student-Friendly Web Interface.
+### Key Features
+*   **Zero Hallucination Policy**: Answers are strictly derived from the provided NCERT PDFs.
+*   **Vector Search**: Uses FAISS and `all-MiniLM-L6-v2` for high-precision semantic retrieval.
+*   **Microservices Architecture**: Decoupled services for ingestion, retrieval (RAG), API, and Frontend.
+*   **Multimodal Capabilities**: Capable of processing both text (current) and diagrams (planned) from textbooks.
 
 ---
 
-## ✨ Key Features
+## 🏗️ Architecture
 
-*   **🛡️ Strict NCERT Grounding**: Answers are verified against the textbook context.
-*   **🔄 Incremental Ingestion**: Recognizes already processed files to save time.
-*   **📚 Transparency**: Citations are displayed for every single answer.
-*   **🚫 Out-of-Syllabus Guard**: Blocks questions that are not covered in the curriculum.
-*   **⚠️ Graceful Quota Handling**: If the AI model (Gemini) is busy/limited, the system still shows the relevant textbook pages.
+The system follows a containerized microservices pattern:
+
+```mermaid
+graph TD
+    User[Web Client] -->|HTTP/REST| Frontend[Next.js Frontend]
+    Frontend -->|Requests| API[FastAPI Gateway]
+    API -->|Query| RAG[RAG Service]
+    RAG -->|Retrieve| VectorDB[(FAISS Vector Store)]
+    RAG -->|Generate| LLM[Google Gemini Pro]
+    
+    subgraph "Data Pipeline"
+        PDFs[Raw NCERT PDFs] --> Ingestion[Ingestion Service]
+        Ingestion -->|Embed| VectorDB
+    end
+```
+
+### Services
+1.  **Ingestion Engine**: Processes PDFs, cleans text, chunks content, and generates embeddings.
+2.  **RAG Service**: Handles semantic search and context injection for the LLM.
+3.  **API Gateway**: Central entry point for all client requests.
+4.  **Frontend**: Modern Next.js UI for student interaction.
 
 ---
 
-## 💻 Installation & Setup
+## 🛠️ Tech Stack
 
-Follow these steps to run the project on your local machine.
+| Component | Technology |
+| :--- | :--- |
+| **LLM** | Google Gemini 1.5 Pro |
+| **Embeddings** | Sentence-Transformers (`all-MiniLM-L6-v2`) |
+| **Vector DB** | FAISS (Facebook AI Similarity Search) |
+| **Backend** | Python, FastAPI, Uvicorn |
+| **Frontend** | Next.js 14, React, TailwindCSS |
+| **Infrastructure** | Docker, Docker Compose, Kubernetes |
+
+---
+
+## ⚡ How to Run
+
+### Prerequisites
+*   Docker & Docker Compose
+*   Google Gemini API Key
 
 ### 1. Clone the Repository
 ```bash
-git clone <repository-url>
+git clone https://github.com/your-username/ncert-doubt-solver.git
 cd ncert-doubt-solver
 ```
 
-### 2. Set Up Virtual Environment (Recommended)
-```bash
-# Windows
-python -m venv .venv
-.venv\Scripts\activate
+### 2. Configure Environment
+Create a `.env` file in the root directory. **Do NOT commit this file.**
 
-# Mac/Linux
-python3 -m venv .venv
-source .venv/bin/activate
+```bash
+GOOGLE_API_KEY=your_actual_api_key_here
 ```
 
-### 3. Install Dependencies
+### 3. Start Application
+Launch all microservices using Docker Compose:
+
 ```bash
-pip install -r requirements.txt
+docker compose up --build
 ```
 
-### 4. Configure API Key
-**Important**: You need a Google Gemini API Key.
-1.  Create a file named `.env` in the root folder.
-2.  Add your key inside it:
-    ```
-    GOOGLE_API_KEY=your_actual_api_key_here
-    ```
-    *(Note: This file is ignored by Git for security.)*
+The application will be available at:
+*   **Frontend**: `http://localhost:3000`
+*   **API Docs**: `http://localhost:8000/docs`
 
 ---
 
-## 🏃 How to Run the Project
+## 🔒 Security
 
-### Start the User Interface
-Run the following command:
+*   **No Hardcoded Secrets**: All sensitive keys (API tokens) are injected via environment variables (`.env`).
+*   **Secret Management**: The `.env` file is strictly Git-ignored.
+*   **Container Security**: Services run in isolated containers with minimal persistence.
+
+---
+
+## 🚢 Deployment
+
+The project includes Kubernetes manifests for scalable deployment in `k8s/`.
+
+To deploy to a cluster:
 ```bash
-streamlit run ui/app.py
+kubectl apply -f k8s/
 ```
 
-*   The web app will open automatically in your browser.
-*   Local URL: `http://localhost:8501`
+> **Note**: Public hosting is currently disabled to prevent API quota abuse.
 
 ---
 
-## 🧪 Testing the System
+## ⚠️ Legacy Note
 
-### ✅ Test In-Syllabus Questions
-Select **Class 6 - Science** and ask:
-*   *"What are the components of food?"*
-*   *"Explain the process of photosynthesis."*
-
-**Expected Result**: A clear answer with citations (Page numbers).
-
-### 🛑 Test Out-of-Syllabus Guardrails
-Ask a question not in the book:
-*   *"How does a nuclear reactor work?"* (For Class 6)
-*   *"Who is the President of USA?"*
-
-**Expected Result**: *"This topic is not covered in the NCERT textbook for this class."*
+The `ui/` folder contains an older Streamlit prototype. This is retained for internal admin/debugging purposes only and is **not** part of the production Next.js architecture.
 
 ---
 
-## ⚠️ Known Limitations
-
-1.  **Gemini Free Tier Quota**: The system runs on the free tier of the Google Gemini API.
-    *   If you see *"The system is temporarily unable to generate an answer"*, it means the Rate Limit (RPM) was hit.
-    *   **Good News**: The Retrieval (Sources) will still appear, so the tool remains useful.
-2.  **Text Only**: Currently, the system does not process images or diagrams from the PDFs.
-
----
-
-## 🔒 Why is this not deployed?
-This project is submitted as a **local-run application** for academic/hackathon evaluation because:
-1.  **API Security**: We cannot expose our personal API keys on a public server.
-2.  **Resource Limits**: The free tier of the LLM has per-minute request limits suitable for local testing but not public traffic.
-
----
-
-*Built by **Team iDeatorsX** | NCERT Doubt Solver Project*
+## 📄 License
+MIT License.

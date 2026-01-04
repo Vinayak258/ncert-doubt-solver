@@ -17,3 +17,7 @@ data/cleaned_text/
 # IDE Settings
 .vscode/
 .idea/
+
+# Frontend
+node_modules/
+.next/

@@ -1,0 +1,7 @@
+[CONTEXT START]
+{RETRIEVED_CHUNKS}
+[CONTEXT END]
+
+USER QUESTION: {USER_QUESTION}
+
+Please answer the question based strictly on the context above.
