@@ -64,16 +64,20 @@ class RAGResponse(BaseModel):
 async def startup_event():
     global pipeline
     try:
-        print("🚀 Initializing RAG Pipeline...")
+        print("🚀 Initializing RAG Pipeline (warm start)...")
 
         if not os.getenv("GOOGLE_API_KEY"):
-            print("⚠️ WARNING: GOOGLE_API_KEY not found. RAG generation may fail.")
+            print("⚠️ WARNING: GOOGLE_API_KEY not found.")
 
         pipeline = RAGPipeline()
-        print("✅ RAG Pipeline Ready.")
+
+        # 🔥 FORCE model + index warmup
+        pipeline.run("warmup query", filters=None)
+
+        print("✅ RAG Pipeline fully warmed and ready.")
 
     except Exception as e:
-        print(f"❌ Error initializing pipeline: {e}")
+        print(f"❌ Startup initialization failed: {e}")
         pipeline = None
 
 # ---------------------------------------------------------------------
@@ -89,45 +93,45 @@ def health_check():
 # ---------------------------------------------------------------------
 # RAG Query Endpoint
 # ---------------------------------------------------------------------
+import asyncio
+
 @app.post("/rag/query", response_model=RAGResponse)
 async def query_rag(request: RAGQuery):
     if pipeline is None:
-        raise HTTPException(
-            status_code=503,
-            detail="RAG Pipeline not yet initialized"
-        )
+        raise HTTPException(status_code=503, detail="Pipeline not ready")
 
     try:
-        result = pipeline.run(
-            request.query,
-            filters=request.filters
+        result = await asyncio.wait_for(
+            asyncio.to_thread(
+                pipeline.run,
+                request.query,
+                request.filters
+            ),
+            timeout=55  # seconds
         )
 
-        citations: List[str] = []
+        citations = []
         for chunk in result.get("context", []):
-            citation = (
+            citations.append(
                 f"Class {chunk.get('class', 'N/A')} "
                 f"{chunk.get('subject', 'N/A')} - "
                 f"Ch {chunk.get('chapter', 'N/A')} "
                 f"(Pg {chunk.get('page', 'N/A')})"
             )
-            citations.append(citation)
-
-        unique_citations = list(dict.fromkeys(citations))
 
         return RAGResponse(
-            answer=result.get("answer", "No answer generated."),
+            answer=result.get("answer", ""),
             context=result.get("context", []),
-            citations=unique_citations,
+            citations=list(dict.fromkeys(citations)),
             latency=result.get("latency", 0.0)
         )
 
-    except Exception as e:
-        print(f"❌ Error processing query: {e}")
+    except asyncio.TimeoutError:
         raise HTTPException(
-            status_code=500,
-            detail="Internal server error while processing RAG query"
+            status_code=504,
+            detail="Model is warming up. Please retry in 30 seconds."
         )
+
 
 # ---------------------------------------------------------------------
 # Local Development Entry Point
