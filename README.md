@@ -1,121 +1,162 @@
 # NCERT Doubt Solver (AI-Powered RAG System)
 
-![Python](https://img.shields.io/badge/Python-3.10-blue?style=for-the-badge&logo=python&logoColor=white)
-![FastAPI](https://img.shields.io/badge/FastAPI-0.109-009688?style=for-the-badge&logo=fastapi&logoColor=white)
-![Next.js](https://img.shields.io/badge/Next.js-14-black?style=for-the-badge&logo=next.js&logoColor=white)
-![Docker](https://img.shields.io/badge/Docker-24.0-2496ED?style=for-the-badge&logo=docker&logoColor=white)
+![Python](https://img.shields.io/badge/Python-3.10-blue?style=for-the-badge\&logo=python\&logoColor=white)
+![FastAPI](https://img.shields.io/badge/FastAPI-0.109-009688?style=for-the-badge\&logo=fastapi\&logoColor=white)
+![Next.js](https://img.shields.io/badge/Next.js-14-black?style=for-the-badge\&logo=next.js\&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-24.0-2496ED?style=for-the-badge\&logo=docker\&logoColor=white)
 
 An enterprise-grade, microservices-based AI system designed to answer student doubts using **Retrieval-Augmented Generation (RAG)** strictly from NCERT textbooks.
 
+---
+
 ## 🚀 Project Overview
 
-The **NCERT Doubt Solver** deals with the hallucinations common in Large Language Models (LLMs) by grounding answers in authoritative operational data—in this case, NCERT textbooks.
+The **NCERT Doubt Solver** addresses hallucinations common in Large Language Models (LLMs) by grounding all responses in authoritative NCERT textbook content.
 
 ### Key Features
-*   **Zero Hallucination Policy**: Answers are strictly derived from the provided NCERT PDFs.
-*   **Vector Search**: Uses FAISS and `all-MiniLM-L6-v2` for high-precision semantic retrieval.
-*   **Microservices Architecture**: Decoupled services for ingestion, retrieval (RAG), API, and Frontend.
-*   **Multimodal Capabilities**: Capable of processing both text (current) and diagrams (planned) from textbooks.
+
+* **Zero Hallucination Policy** – Answers are generated strictly from retrieved NCERT context
+* **Vector Search** – FAISS + Sentence-Transformers for semantic retrieval
+* **Microservices Architecture** – Decoupled ingestion, RAG backend, and frontend
+* **Scalable Design** – Dockerized and Kubernetes-ready
 
 ---
 
 ## 🏗️ Architecture
 
-The system follows a containerized microservices pattern:
-
 ```mermaid
 graph TD
-    User[Web Client] -->|HTTP/REST| Frontend[Next.js Frontend]
-    Frontend -->|Requests| API[FastAPI Gateway]
-    API -->|Query| RAG[RAG Service]
-    RAG -->|Retrieve| VectorDB[(FAISS Vector Store)]
-    RAG -->|Generate| LLM[Google Gemini Pro]
-    
-    subgraph "Data Pipeline"
-        PDFs[Raw NCERT PDFs] --> Ingestion[Ingestion Service]
-        Ingestion -->|Embed| VectorDB
+    User[Web Client] -->|HTTP| Frontend[Next.js Frontend]
+    Frontend -->|REST API| RAGAPI[RAG Backend Service]
+    RAGAPI -->|Retrieve| VectorDB[(FAISS Vector Store)]
+    RAGAPI -->|Generate| LLM[Google Gemini Pro]
+
+    subgraph Data Pipeline
+        PDFs[NCERT PDFs] --> Ingestion[Ingestion Pipeline]
+        Ingestion --> VectorDB
     end
 ```
 
 ### Services
-1.  **Ingestion Engine**: Processes PDFs, cleans text, chunks content, and generates embeddings.
-2.  **RAG Service**: Handles semantic search and context injection for the LLM.
-3.  **API Gateway**: Central entry point for all client requests.
-4.  **Frontend**: Modern Next.js UI for student interaction.
+
+1. **Ingestion Engine** – PDF parsing, OCR, chunking, embeddings
+2. **RAG Service** – Retrieval + prompt orchestration + LLM inference
+3. **Frontend** – Student-facing UI built with Next.js
 
 ---
 
 ## 🛠️ Tech Stack
 
-| Component | Technology |
-| :--- | :--- |
-| **LLM** | Google Gemini 1.5 Pro |
-| **Embeddings** | Sentence-Transformers (`all-MiniLM-L6-v2`) |
-| **Vector DB** | FAISS (Facebook AI Similarity Search) |
-| **Backend** | Python, FastAPI, Uvicorn |
-| **Frontend** | Next.js 14, React, TailwindCSS |
-| **Infrastructure** | Docker, Docker Compose, Kubernetes |
+| Component      | Technology                                 |
+| -------------- | ------------------------------------------ |
+| LLM            | Google Gemini 1.5 Pro                      |
+| Embeddings     | Sentence-Transformers (`all-MiniLM-L6-v2`) |
+| Vector DB      | FAISS                                      |
+| Backend        | Python, FastAPI, Uvicorn                   |
+| Frontend       | Next.js 14, React, TailwindCSS             |
+| Infrastructure | Docker, Docker Compose, Kubernetes         |
 
 ---
 
-## ⚡ How to Run
+## ⚡ How to Run Locally
 
 ### Prerequisites
-*   Docker & Docker Compose
-*   Google Gemini API Key
 
-### 1. Clone the Repository
+* Docker
+* Docker Compose
+* Google Gemini API Key
+
+### 1. Clone Repository
+
 ```bash
 git clone https://github.com/your-username/ncert-doubt-solver.git
 cd ncert-doubt-solver
 ```
 
 ### 2. Configure Environment
-Create a `.env` file in the root directory. **Do NOT commit this file.**
 
-```bash
+Create a `.env` file in the root directory (**do not commit**):
+
+```env
 GOOGLE_API_KEY=your_actual_api_key_here
 ```
 
-### 3. Start Application
-Launch all microservices using Docker Compose:
+### 3. Start Services
 
 ```bash
 docker compose up --build
 ```
 
-The application will be available at:
-*   **Frontend**: `http://localhost:3000`
-*   **API Docs**: `http://localhost:8000/docs`
+### Local Access
+
+* **Frontend**: [http://localhost:3000](http://localhost:3000)
+* **Backend API Docs**: [http://localhost:8001/docs](http://localhost:8001/docs)
 
 ---
+
+## 🌐 Hosted Deployment (Current)
+
+The project is actively deployed using a split frontend–backend architecture:
+
+### Frontend (Production)
+
+* **Platform**: Vercel
+* **URL**: [https://ncert-doubt-solver.vercel.app](https://ncert-doubt-solver.vercel.app)
+* **Tech**: Next.js 14 (App Router)
+
+### Backend (Production)
+
+* **Platform**: Render
+* **Service**: RAG Backend (FastAPI)
+* **Responsibilities**:
+
+  * FAISS vector retrieval
+  * Prompt assembly
+  * Gemini API inference
+
+> This hosted setup mirrors the local Docker architecture and is intended for demonstration and evaluation purposes.
+
+## ⚠️ Deployment Note (Resource Constraints)
+
+The backend RAG service is deployed on Render (Free Tier – 512 MB RAM).
+
+Due to the memory-intensive nature of:
+- Sentence-Transformer models
+- FAISS vector indexes
+- Cold-start model downloads
+
+the service may occasionally restart or become temporarily unavailable
+under concurrent access.
+
+This is a **platform limitation**, not an architectural or implementation issue.
+In production, this service is intended to run on:
+- Render paid plans
+- AWS EC2 / ECS
+- GCP / Azure
+with ≥ 2 GB RAM.
+
 
 ## 🔒 Security
 
-*   **No Hardcoded Secrets**: All sensitive keys (API tokens) are injected via environment variables (`.env`).
-*   **Secret Management**: The `.env` file is strictly Git-ignored.
-*   **Container Security**: Services run in isolated containers with minimal persistence.
+* No secrets committed to source control
+* API keys injected via environment variables
+* `.env` strictly git-ignored
+* Containers isolated per service
 
 ---
 
-## 🚢 Deployment
+## 🚢 Kubernetes Deployment (Optional)
 
-The project includes Kubernetes manifests for scalable deployment in `k8s/`.
+Kubernetes manifests are available in the `k8s/` directory:
 
-To deploy to a cluster:
 ```bash
 kubectl apply -f k8s/
 ```
 
-> **Note**: Public hosting is currently disabled to prevent API quota abuse.
+> Note: Kubernetes configs are provided for architectural completeness and were not used in the hosted demo deployment.
 
----
-
-## ⚠️ Legacy Note
-
-The `ui/` folder contains an older Streamlit prototype. This is retained for internal admin/debugging purposes only and is **not** part of the production Next.js architecture.
-
----
 
 ## 📄 License
-MIT License.
+
+MIT License
+
