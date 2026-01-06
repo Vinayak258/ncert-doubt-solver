@@ -4,13 +4,12 @@ from pathlib import Path
 from typing import Optional, Dict, Any, List
 
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 # ---------------------------------------------------------------------
 # Path setup
 # ---------------------------------------------------------------------
-# Add src to path so we can import 'rag', 'vector_store', etc. if running locally
-# When running in Docker, 'src' contents are already at root level.
 base_path = Path(__file__).parent
 src_path = base_path / "src"
 if src_path.exists():
@@ -30,7 +29,18 @@ except ImportError as e:
 app = FastAPI(title="NCERT RAG Service", version="1.0.0")
 
 # ---------------------------------------------------------------------
-# Global pipeline instance (initialized on startup)
+# ✅ CORS MIDDLEWARE (CRITICAL FIX)
+# ---------------------------------------------------------------------
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],          # allow frontend domain (safe for demo)
+    allow_credentials=True,
+    allow_methods=["*"],          # REQUIRED for OPTIONS preflight
+    allow_headers=["*"],
+)
+
+# ---------------------------------------------------------------------
+# Global pipeline instance
 # ---------------------------------------------------------------------
 pipeline = None
 
@@ -52,7 +62,6 @@ class RAGResponse(BaseModel):
 # ---------------------------------------------------------------------
 @app.on_event("startup")
 async def startup_event():
-    """Initialize the RAG pipeline on startup."""
     global pipeline
     try:
         print("🚀 Initializing RAG Pipeline...")
@@ -66,14 +75,12 @@ async def startup_event():
     except Exception as e:
         print(f"❌ Error initializing pipeline: {e}")
         pipeline = None
-        # Do not raise to allow container to start
 
 # ---------------------------------------------------------------------
 # Health Check
 # ---------------------------------------------------------------------
 @app.get("/health")
 def health_check():
-    """Health check endpoint."""
     return {
         "status": "ok",
         "pipeline_loaded": pipeline is not None
@@ -84,9 +91,6 @@ def health_check():
 # ---------------------------------------------------------------------
 @app.post("/rag/query", response_model=RAGResponse)
 async def query_rag(request: RAGQuery):
-    """
-    Execute RAG retrieval and generation.
-    """
     if pipeline is None:
         raise HTTPException(
             status_code=503,
@@ -99,7 +103,6 @@ async def query_rag(request: RAGQuery):
             filters=request.filters
         )
 
-        # Build citations
         citations: List[str] = []
         for chunk in result.get("context", []):
             citation = (
@@ -110,7 +113,6 @@ async def query_rag(request: RAGQuery):
             )
             citations.append(citation)
 
-        # Deduplicate while preserving order
         unique_citations = list(dict.fromkeys(citations))
 
         return RAGResponse(
