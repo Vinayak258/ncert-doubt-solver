@@ -92,7 +92,17 @@ docker compose up --build
 * **Frontend**: [http://localhost:3000](http://localhost:3000)
 * **Backend API Docs**: [http://localhost:8001/docs](http://localhost:8001/docs)
 
----
+## 🌐 Live Demo
+
+- **Frontend (Vercel)**: https://ncert-doubt-solver.vercel.app
+- **Backend RAG Service (Render)**: https://ncert-rag-service.onrender.com
+- **Health Check**: https://ncert-rag-service.onrender.com/health
+
+> ⚠️ Note: The backend is hosted on Render Free Tier (512 MB RAM).
+> Cold starts or high memory usage during model loading may cause
+> temporary unavailability. The system is production-ready on
+> higher-memory infrastructure.
+
 
 ## 🌐 Hosted Deployment (Current)
 
