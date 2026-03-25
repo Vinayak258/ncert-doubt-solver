@@ -114,11 +114,23 @@ class Retriever:
                 continue
             filtered_results.append(r)
             
-        # Fallback if nothing found
-        if not filtered_results:
-            filtered_results = raw_candidates[:top_k]
-            
-        results = filtered_results[:top_k]
+        # Keyword filtering
+        query_words = query.lower().split()
+        keyword_filtered = [
+            r for r in filtered_results
+            if any(word in r['text'].lower() for word in query_words)
+        ]
+        
+        # Apply Safe Fallback
+        if keyword_filtered:
+            final_results = keyword_filtered
+        elif filtered_results:
+            final_results = filtered_results
+        else:
+            final_results = raw_candidates[:3]
+
+        # Limit final results noise reduction
+        results = final_results[:3]
         
         elapsed_time = time.time() - start_time
         

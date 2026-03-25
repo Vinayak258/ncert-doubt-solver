@@ -104,7 +104,10 @@ class LLMGenerator:
             Generated response string
         """
         # 1. Format context
-        context_str = self.format_context(chunks)
+        context_str = "\n\n".join([
+            chunk.get('text', '').strip()
+            for chunk in chunks
+        ])
         
         # 2. Construct prompt
         prompt = f"""
@@ -130,6 +133,10 @@ Context:
 {context_str}
 """
         
+        # Add Relevance Guard
+        if not any(word in context_str.lower() for word in question.lower().split()):
+            return "Relevant answer not found in selected NCERT section."
+
         # 3. Call LLM
         import time
 
