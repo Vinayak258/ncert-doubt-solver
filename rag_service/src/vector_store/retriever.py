@@ -82,27 +82,16 @@ class Retriever:
         search_k = top_k * 10 if any([class_filter, subject_filter, language_filter]) else top_k
         distances, indices = self.index.search(query_embedding, k=min(search_k, self.index.ntotal))
         
-        # Collect results with metadata
-        results = []
+        # Collect raw candidates with metadata
+        raw_candidates = []
         for dist, idx in zip(distances[0], indices[0]):
             if idx == -1:  # FAISS returns -1 for empty results
                 continue
             
             meta = self.metadata[idx]
-            
-            # Apply filters
-            if class_filter is not None and meta['class'] != class_filter:
-                continue
-            if subject_filter is not None and meta['subject'] != subject_filter:
-                continue
-            if language_filter is not None and meta['language'] != language_filter:
-                continue
-            
-            # Convert L2 distance to similarity score (inverse)
-            # Lower distance = higher similarity
             similarity_score = 1 / (1 + dist)
             
-            result = {
+            raw_candidates.append({
                 'text': meta['text'],
                 'class': meta['class'],
                 'subject': meta['subject'],
@@ -112,12 +101,24 @@ class Retriever:
                 'chunk_id': meta['chunk_id'],
                 'similarity_score': float(similarity_score),
                 'distance': float(dist)
-            }
-            results.append(result)
+            })
+
+        # Apply strict filters
+        filtered_results = []
+        for r in raw_candidates:
+            if class_filter is not None and str(r['class']) != str(class_filter):
+                continue
+            if subject_filter is not None and str(r['subject']).lower() != str(subject_filter).lower():
+                continue
+            if language_filter is not None and str(r['language']).lower() != str(language_filter).lower():
+                continue
+            filtered_results.append(r)
             
-            # Stop if we have enough results
-            if len(results) >= top_k:
-                break
+        # Fallback if nothing found
+        if not filtered_results:
+            filtered_results = raw_candidates[:top_k]
+            
+        results = filtered_results[:top_k]
         
         elapsed_time = time.time() - start_time
         

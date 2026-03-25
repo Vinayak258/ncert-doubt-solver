@@ -106,12 +106,29 @@ class LLMGenerator:
         # 1. Format context
         context_str = self.format_context(chunks)
         
-        # 2. Construct prompt (Note: System prompt is passed at init)
-        # We fill the user template part
-        prompt = self.user_prompt_template.format(
-            RETRIEVED_CHUNKS=context_str,
-            USER_QUESTION=question
-        )
+        # 2. Construct prompt
+        prompt = f"""
+You are an NCERT expert tutor.
+
+Your task is to answer the question strictly using the provided NCERT context.
+
+RULES:
+- Answer must be clear, complete, and well-structured
+- Do NOT copy raw text blindly
+- Do NOT include unrelated information
+- Do NOT mention anything outside the context
+- If the answer is not fully present, say: "Answer not fully available in NCERT"
+
+FORMAT:
+- Start with a direct answer
+- Use simple explanation suitable for students
+
+Question:
+{question}
+
+Context:
+{context_str}
+"""
         
         # 3. Call LLM
         import time
