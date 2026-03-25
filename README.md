@@ -52,7 +52,7 @@ graph TD
 | LLM            | Google Gemini 1.5 Pro                      |
 | Embeddings     | Sentence-Transformers (`all-MiniLM-L6-v2`) |
 | Vector DB      | FAISS                                      |
-| Backend        | Python, FastAPI, Uvicorn                   |
+| Backend        | Python, FastAPI, Uvicorn (Lazy Load)       |
 | Frontend       | Next.js 14, React, TailwindCSS             |
 | Infrastructure | Docker, Docker Compose, Kubernetes         |
 
@@ -98,10 +98,9 @@ docker compose up --build
 - **Backend RAG Service (Render)**: https://ncert-rag-service.onrender.com
 - **Health Check**: https://ncert-rag-service.onrender.com/health
 
-> ⚠️ Note: The backend is hosted on Render Free Tier (512 MB RAM).
-> Cold starts or high memory usage during model loading may cause
-> temporary unavailability. The system is production-ready on
-> higher-memory infrastructure.
+> ⚠️ Note: The backend is optimized for Render Free Tier (512 MB RAM).
+> It uses **Lazy Loading** for models and a lightweight embedding model
+> (`all-MiniLM-L6-v2`) to ensure high stability and fast startup.
 
 
 ## 🌐 Hosted Deployment (Current)
@@ -139,11 +138,9 @@ the service may occasionally restart or become temporarily unavailable
 under concurrent access.
 
 This is a **platform limitation**, not an architectural or implementation issue.
-In production, this service is intended to run on:
-- Render paid plans
-- AWS EC2 / ECS
-- GCP / Azure
-with ≥ 2 GB RAM.
+The service has been optimized with **Lazy Loading** and a lightweight model 
+to mitigate these constraints. In high-traffic production, it is intended 
+to run on ≥ 2 GB RAM.
 
 
 ## 🔒 Security

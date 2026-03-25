@@ -4,9 +4,9 @@ Text Embedder Module
 This module provides text-to-vector conversion using a multilingual
 sentence transformer model that supports both English and Hindi.
 
-Model: paraphrase-multilingual-MiniLM-L12-v2
+Model: all-MiniLM-L6-v2
 - Dimension: 384
-- Languages: 50+ including English and Hindi
+- Languages: English (supported), Multilingual (limited)
 - Speed: ~1000 sentences/sec on CPU
 """
 
@@ -31,9 +31,9 @@ def get_embedder() -> SentenceTransformer:
     global _model
     
     if _model is None:
-        print("Loading multilingual embedding model...")
-        print("Model: paraphrase-multilingual-MiniLM-L12-v2")
-        _model = SentenceTransformer('paraphrase-multilingual-MiniLM-L12-v2')
+        print("Loading lightweight embedding model...")
+        print("Model: all-MiniLM-L6-v2")
+        _model = SentenceTransformer('all-MiniLM-L6-v2')
         print(f"✓ Model loaded successfully (dimension: {_model.get_sentence_embedding_dimension()})")
     
     return _model

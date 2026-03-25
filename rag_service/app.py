@@ -40,9 +40,27 @@ app.add_middleware(
 )
 
 # ---------------------------------------------------------------------
-# Global pipeline instance
+# Lazy Pipeline Loader
 # ---------------------------------------------------------------------
 pipeline = None
+
+def get_pipeline():
+    """Initialize the pipeline only on first query (Lazy loading)."""
+    global pipeline
+    if pipeline is None:
+        try:
+            print("🚀 Initializing RAG Pipeline (Lazy Load)...")
+            if not os.getenv("GOOGLE_API_KEY"):
+                print("⚠️ WARNING: GOOGLE_API_KEY not found.")
+            
+            pipeline = RAGPipeline()
+            # Note: We DON'T warm up here to keep latency acceptable for the first user
+            print("✅ RAG Pipeline initialized and ready.")
+        except Exception as e:
+            print(f"❌ Pipeline initialization failed: {e}")
+            pipeline = None
+            raise HTTPException(status_code=500, detail="Failed to initialize RAG pipeline.")
+    return pipeline
 
 # ---------------------------------------------------------------------
 # Request / Response Schemas
@@ -57,38 +75,18 @@ class RAGResponse(BaseModel):
     citations: List[str] = []
     latency: float
 
-# ---------------------------------------------------------------------
-# Startup Event
-# ---------------------------------------------------------------------
-@app.on_event("startup")
-async def startup_event():
-    global pipeline
-    try:
-        print("🚀 Initializing RAG Pipeline (warm start)...")
-
-        if not os.getenv("GOOGLE_API_KEY"):
-            print("⚠️ WARNING: GOOGLE_API_KEY not found.")
-
-        pipeline = RAGPipeline()
-
-        # 🔥 FORCE model + index warmup
-        pipeline.run("warmup query", filters=None)
-
-        print("✅ RAG Pipeline fully warmed and ready.")
-
-    except Exception as e:
-        print(f"❌ Startup initialization failed: {e}")
-        pipeline = None
+# Root Endpoint
+@app.get("/")
+def root():
+    return {"message": "NCERT RAG API is running"}
 
 # ---------------------------------------------------------------------
 # Health Check
 # ---------------------------------------------------------------------
 @app.get("/health")
 def health_check():
-    return {
-        "status": "ok",
-        "pipeline_loaded": pipeline is not None
-    }
+    """Fast health check for Render/K8s."""
+    return {"status": "ok"}
 
 # ---------------------------------------------------------------------
 # RAG Query Endpoint
@@ -97,13 +95,13 @@ import asyncio
 
 @app.post("/rag/query", response_model=RAGResponse)
 async def query_rag(request: RAGQuery):
-    if pipeline is None:
-        raise HTTPException(status_code=503, detail="Pipeline not ready")
+    # Lazy load pipeline
+    current_pipeline = get_pipeline()
 
     try:
         result = await asyncio.wait_for(
             asyncio.to_thread(
-                pipeline.run,
+                current_pipeline.run,
                 request.query,
                 request.filters
             ),
