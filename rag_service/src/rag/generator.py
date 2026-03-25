@@ -125,16 +125,15 @@ class LLMGenerator:
                     max_output_tokens=self.config.max_output_tokens
                 )
             )
-            return response.text
+
+            # Safe response extraction
+            if hasattr(response, "text") and response.text:
+                answer = response.text
+            else:
+                answer = response.candidates[0].content.parts[0].text
+            
+            return answer
             
         except Exception as e:
-            # 4. Strict UI Error Handling
-            # Log technical error for developers
-            print(f"❌ LLM Generation Failure: {str(e)}")
-            
-            # Return safe, non-technical message for students
-            return (
-                "The system is temporarily unable to generate an answer. \n"
-                "However, the relevant NCERT textbook pages have been identified successfully.\n"
-                "Please try again after some time."
-            )
+            print("🔥 GEMINI ERROR:", str(e))
+            return f"ERROR: {str(e)}"
