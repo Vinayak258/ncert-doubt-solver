@@ -115,19 +115,38 @@ class Retriever:
             filtered_results.append(r)
             
         # Keyword filtering
-        query_words = query.lower().split()
-        keyword_filtered = [
-            r for r in filtered_results
-            if any(word in r['text'].lower() for word in query_words)
+        STOPWORDS = {
+            "what", "is", "the", "of", "in", "a", "an", "and",
+            "to", "for", "on", "with", "by", "at", "from"
+        }
+
+        query_words = [
+            word for word in query.lower().split()
+            if word not in STOPWORDS and len(word) > 2
         ]
         
+        keyword_filtered = [
+            r for r in filtered_results
+            if sum(word in r['text'].lower() for word in query_words) >= max(1, len(query_words)//2)
+        ]
+        
+        for r in filtered_results:
+            r['keyword_score'] = sum(
+                word in r['text'].lower() for word in query_words
+            )
+
+        filtered_results.sort(
+            key=lambda x: (x['keyword_score'], x['similarity_score']),
+            reverse=True
+        )
+
         # Apply Safe Fallback
         if keyword_filtered:
             final_results = keyword_filtered
         elif filtered_results:
-            final_results = filtered_results
+            final_results = sorted(filtered_results, key=lambda x: x['similarity_score'], reverse=True)
         else:
-            final_results = raw_candidates[:3]
+            final_results = sorted(raw_candidates, key=lambda x: x['similarity_score'], reverse=True)[:3]
 
         # Limit final results noise reduction
         results = final_results[:3]
