@@ -114,6 +114,8 @@ class LLMGenerator:
         )
         
         # 3. Call LLM
+        import time
+
         try:
             response = self.model.generate_content(
                 prompt,
@@ -124,16 +126,41 @@ class LLMGenerator:
                     max_output_tokens=self.config.max_output_tokens
                 )
             )
-            return response.text
-            
+
+            # Safe extraction
+            if hasattr(response, "text") and response.text:
+                answer = response.text
+            else:
+                answer = response.candidates[0].content.parts[0].text
+
         except Exception as e:
-            # 4. Strict UI Error Handling
-            # Log technical error for developers
-            print(f"❌ LLM Generation Failure: {str(e)}")
-            
-            # Return safe, non-technical message for students
-            return (
-                "The system is temporarily unable to generate an answer. \n"
-                "However, the relevant NCERT textbook pages have been identified successfully.\n"
-                "Please try again after some time."
-            )
+            print("🔥 GEMINI ERROR:", str(e))
+
+            # Retry once if rate limited
+            if "429" in str(e):
+                time.sleep(5)
+                try:
+                    response = self.model.generate_content(
+                        prompt,
+                        generation_config=genai.types.GenerationConfig(
+                            temperature=self.config.temperature,
+                            top_p=self.config.top_p,
+                            top_k=self.config.top_k,
+                            max_output_tokens=self.config.max_output_tokens
+                        )
+                    )
+
+                    if hasattr(response, "text") and response.text:
+                        answer = response.text
+                    else:
+                        answer = response.candidates[0].content.parts[0].text
+
+                except Exception as retry_error:
+                    print("🔥 RETRY FAILED:", str(retry_error))
+                    answer = "Based on NCERT content:\n\n" + context_str[:500]
+
+            else:
+                # Fallback if any other error
+                answer = "Based on NCERT content:\n\n" + context_str[:500]
+
+        return answer

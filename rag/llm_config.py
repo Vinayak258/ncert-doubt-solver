@@ -10,7 +10,7 @@ class LLMConfig:
     """Configuration for LLM generation."""
     
     # Model settings
-    model_name: str = "models/gemini-2.0-flash"  # Explicit prefix
+    model_name: str = "models/gemini-1.5-flash"  # Explicit prefix
     temperature: float = 0.3              # Lower for factual accuracy
     max_output_tokens: int = 1024
     top_p: float = 0.95
@@ -27,5 +27,5 @@ class LLMConfig:
         """Load configuration from environment variables."""
         return cls(
             api_key=os.getenv("GOOGLE_API_KEY", ""),
-            model_name=os.getenv("LLM_MODEL", "models/gemini-2.0-flash")
+            model_name=os.getenv("LLM_MODEL", "models/gemini-1.5-flash")
         )

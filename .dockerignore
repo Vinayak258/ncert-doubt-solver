@@ -1,0 +1,28 @@
+# Virtual environments
+.venv
+venv
+
+# Frontend (deployed separately)
+frontend
+ui
+
+# Dev / non-runtime folders
+docs
+evaluation
+scripts
+k8s
+.github
+
+# Assets
+Images
+
+# Node
+node_modules
+
+# Git & env
+.git
+.gitignore
+.env
+
+# Misc
+*.md
